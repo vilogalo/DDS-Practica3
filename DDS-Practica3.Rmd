@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### 1. Optimización de un modelo de ML
 
-Se listarán a continuación los enunciados de las preguntas requeridas junto con su respuesta.
+Queremos mejorar la precisión con la que un modelo de aprendizaje automático es capaz de clasificar el tráfico de red. Para ello, disponemos de un modelo ya programado que nos ofrece una cierta garantía de precisión para determinar correctamente si un determinado flujo de datos se trata en realidad de un tráfico con características similares a las de un ciberataque y, por lo tanto, el sistema de gestión y protección de la red debería bloquearlo o, por el contrario, se corresponde a patrón de tráfico de red normal. Nuestro programa es capaz ya de generar el modelo y verificar la precisión de los resultados utilizando el conjunto de datos de red.
 
 #### Exploración de Datos
 
