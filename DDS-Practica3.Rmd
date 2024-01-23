@@ -8,22 +8,35 @@ date: "2024-01-23"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# Data Driven Security - Actividad Evaluable 3
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## Víctor López García & Lucas Carrillo Mas
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+### 1. Optimización de un modelo de ML
 
-```{r cars}
-summary(cars)
-```
+Se listarán a continuación los enunciados de las preguntas requeridas junto con su respuesta.
 
-## Including Plots
+#### Exploración de Datos
 
-You can also embed plots, for example:
+##### 1. Exploración de los datos de tráfico de red disponibles
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+#### Generación del modelo de ML
+
+##### 2. Comprender el código utilizado para segmentar el conjunto de datos entre datos de entrenamiento y datos de validación.
+
+
+
+
+
+#### Mejora de resultados del modelo
+
+##### 3. Mejora de los resultados. Una vez ejecutado el código, comprobad la accuracy del modelo generado cuando se verifica con los datos de validación. Investigad el código y implementad al menos 2 mejoras que consigan aumentar la precisión del modelo.
+
+
+
+
+
+
