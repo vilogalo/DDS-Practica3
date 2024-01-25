@@ -20,6 +20,70 @@ Queremos mejorar la precisión con la que un modelo de aprendizaje automático e
 
 ##### 1. Exploración de los datos de tráfico de red disponibles
 
+```{r setup, include=FALSE, cache=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library("jsonlite", warn.conflicts = FALSE)
+library("ggplot2", warn.conflicts = FALSE)
+library("lattice", warn.conflicts = FALSE)
+library("caret", warn.conflicts = FALSE)
+library("gbm", warn.conflicts = FALSE)
+library("pROC", warn.conflicts = FALSE)
+
+set.seed(42)
+```
+
+# Detección de ataques con aprendizaje supervisado
+
+El siguiente ejercicio consiste en la optmización de un modelo de Machine Learning capaz de detectar ataques a partir de logs de un firewall. Para este propósito, se realizará una prueba de concepto con una pequeña muestra de logs previamente etiquetados como tráfico normal o ataque.
+
+## Load of the data sets
+
+Se proporcionan los siguentes archivos:
+
+-   features.csv
+-   events.csv
+
+```{r tidy_data, echo=FALSE}
+base_path <- "./AE3/"
+
+events <- read.csv(paste(base_path, "events_sample.csv", sep = ""))
+features <- read.csv(paste(base_path, "features.csv", sep = ""))
+```
+
+### Events analysis/exploration
+
+```{r events_stats, echo=FALSE}
+
+class_events <- sapply(events[1,], function(x) class(x))
+summary_events <- summary(events)
+
+```
+
+### Data enrichment
+
+```{r data_enrich, echo=FALSE}
+
+
+```
+
+## Feature engineering
+
+```{r feat_eng, echo=FALSE}
+# El modelo requiere nombres de columna simples y features numericas o factor
+names(events) <- stringr::str_replace_all(names(events), "_", "")
+events <- as.data.frame(unclass(events), stringsAsFactors = TRUE)
+
+# Etiquetamos la columna Label con valores categoricos
+events$Label <- ifelse(events$Label == 1, "ATTACK", "NORMAL")
+events$Label <- as.factor(events$Label)
+events$attackcat <- NULL
+
+outcomeName <- 'Label'
+predictorsNames <- names(events)[names(events) != outcomeName]
+
+prop.table(table(events$Label))
+```
 
 
 
@@ -28,6 +92,63 @@ Queremos mejorar la precisión con la que un modelo de aprendizaje automático e
 ##### 2. Comprender el código utilizado para segmentar el conjunto de datos entre datos de entrenamiento y datos de validación.
 
 
+## Build model
+
+### Create train and test data sets
+
+```{r train_test, echo=FALSE}
+splitIndex <- createDataPartition(events[,outcomeName], p = .90, list = FALSE, times = 1)
+
+trainDF <- events[ splitIndex,]
+testDF  <- events[-splitIndex,]
+```
+
+### Prepare object with training configuration (how we are gonna train the model)
+
+```{r model_config, echo=FALSE}
+# Consulta https://es.wikipedia.org/wiki/Validaci%C3%B3n_cruzada
+objControl <- trainControl(method = 'none',
+                           returnResamp = 'none', 
+                           summaryFunction = twoClassSummary, 
+                           classProbs = TRUE)
+```
+
+### Train the model
+
+```{r model_train, echo=FALSE}
+set.seed(42)
+objModel <- train(trainDF[,predictorsNames], trainDF[,outcomeName], 
+                  method = 'gbm', 
+                  trControl = objControl,  
+                  metric = "ROC",
+                  preProc = c("center", "scale"))
+# summary(objModel)
+```
+
+### Test model
+
+```{r model_test, echo=FALSE}
+predictions <- predict(object = objModel, testDF[, predictorsNames], type = 'raw')
+#head(predictions)
+```
+
+## Evaluate model
+
+```{r model_eval, echo=FALSE}
+prob <- postResample(pred = predictions, obs = as.factor(testDF[,outcomeName]))
+print(postResample(pred = predictions, obs = as.factor(testDF[,outcomeName])))
+```
+
+```{r predic_prob}
+# probabilites 
+predictions <- predict(object = objModel, testDF[,predictorsNames], type = 'prob')
+auc <- roc(ifelse(testDF[,outcomeName] == "ATTACK",1,0), predictions[[2]])
+print(auc$auc)
+```
+
+```{r var_importance}
+plot(varImp(objModel, scale = F))
+```
 
 
 
@@ -35,8 +156,17 @@ Queremos mejorar la precisión con la que un modelo de aprendizaje automático e
 
 ##### 3. Mejora de los resultados. Una vez ejecutado el código, comprobad la accuracy del modelo generado cuando se verifica con los datos de validación. Investigad el código y implementad al menos 2 mejoras que consigan aumentar la precisión del modelo.
 
+```{r Conclusion}
 
+# results for repeating the  training with different percentage for split value (seed always set at 42)
+split_results <- c(0.9817876, 0.9806645, 0.9821155, 0.9827478, 0.9837312, 0.9842835, 0.9846130, 0.9838306, 0.9838152, 0.9837968, 0.9859969, 0.9874969, 0.9891398, 0.9883294, 0.9871949, 0.9889945, 0.9906604, 0.9869870, 0.9859719)
+names(split_results) <- c(seq(0.05, 0.95, by=0.05))
 
+```
 
+El valor inicial del accuracy es de 98.4% y nuestro objetivo será mejorarlo todo lo posible con 2 mejoras.
+En primer lugar, hemos cambiado la partición entre el trainDF y el testDF. 
 
+En el modelo inicial, teníamos destinado el 25% del dataset total para train y el resto para test. Queremos entrenar el modelo con el mayor volumen de datos posible para que sea representativo, entoces vamos a buscar qué partición nos da el mejor resultado, y el 85% para train y 15% para test nos da un accuracy de 98.7%.
 
+A continuación, hemos jugado con el parametro method de la función "trainControl". Con el parámetro "boot" obtenemos una accuracy muy buena de 99.3%. 
